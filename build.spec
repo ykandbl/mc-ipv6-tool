@@ -5,10 +5,20 @@ block_cipher = None
 
 a = Analysis(
     ['src/main.py'],
-    pathex=[],
+    pathex=['src'],
     binaries=[],
     datas=[],
-    hiddenimports=['PyQt6.sip'],
+    hiddenimports=[
+        'PyQt6.sip',
+        'ui',
+        'ui.main_window',
+        'ui.splash',
+        'scanner',
+        'validator',
+        'clipboard',
+        'browser',
+        'firewall',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

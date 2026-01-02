@@ -8,7 +8,16 @@
 
 前往 [Releases](../../releases) 页面下载最新版本的 `IPv6Tool.exe`，双击即可运行。
 
-### 方式二：从源码运行
+### 方式二：本地安装
+
+如果你有本地编译好的版本，可以直接复制使用：
+
+```bash
+# 复制可执行文件到你想要的位置
+cp /Users/bole/My_Project/ipv6_worker/dist/IPv6Tool.exe ~/Desktop/
+```
+
+### 方式三：从源码运行
 
 ```bash
 # 克隆仓库

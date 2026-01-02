@@ -379,7 +379,7 @@ class MainWindow(QMainWindow):
     def _open_github(self):
         """打开 GitHub 项目页面"""
         import webbrowser
-        webbrowser.open("https://github.com/ykandbl/ipv6-address-tool")
+        webbrowser.open("https://github.com/ykandbl/mc-ipv6-tool")
     
     def _sort_addresses(self, addresses):
         """排序地址：临时地址 > 正常地址 > 本地地址"""

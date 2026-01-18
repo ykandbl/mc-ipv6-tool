@@ -42,7 +42,7 @@ class SplashScreen(QWidget):
         container_layout.setSpacing(15)
         
         # 标题
-        title = QLabel("🎮 买块联机 - 房主工具")
+        title = QLabel("🎮 买块联机工具")
         title.setFont(QFont("Microsoft YaHei", 16, QFont.Weight.Bold))
         title.setStyleSheet("color: white; background: transparent;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)

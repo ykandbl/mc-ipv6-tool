@@ -76,9 +76,9 @@ class ConnectivityTestDialog(QDialog):
         layout.setSpacing(15)
         
         # 说明
-        info_label = QLabel("测试你和对方的 IPv6 连通性，判断谁适合当房主")
+        info_label = QLabel("💡 测试你和对方的 IPv6 连通性，自动判断谁适合当房主\n\n⚠️ 注意：双方都需要先用工具获取自己的 IPv6 地址并互相交换")
         info_label.setWordWrap(True)
-        info_label.setStyleSheet(f"color: {THEME['text_secondary']}; padding: 10px;")
+        info_label.setStyleSheet(f"color: {THEME['text_secondary']}; padding: 10px; background-color: #F5F5F5; border-radius: 4px;")
         layout.addWidget(info_label)
         
         # 输入区域
@@ -218,13 +218,17 @@ class ConnectivityTestDialog(QDialog):
 运营商信息：
   你的运营商: {result['local_isp']}
   对方运营商: {result['remote_isp']}
-  {'⚠️ 跨运营商连接' if result['cross_isp'] else '✅ 同运营商'}
+  {'⚠️ 跨运营商连接（可能单向不通）' if result['cross_isp'] else '✅ 同运营商（连接稳定）'}
 
 连通性测试：
   你 → 对方: {result['local_to_remote']['message']}
 
 【建议】
 {result['recommendation']}
+
+💡 提示：
+• Ping 通不代表 100% 能连上游戏，还需要房主正确设置防火墙端口
+• 如果 Ping 不通，基本无法连接，建议换方向或使用 VPN
 """
         self.result_text.setText(text.strip())
 
@@ -331,7 +335,7 @@ class MainWindow(QMainWindow):
         self._refresh_addresses()
     
     def _setup_ui(self):
-        self.setWindowTitle("🎮 买块联机 - 房主工具")
+        self.setWindowTitle("🎮 买块联机工具")
         
         # 设置更大的窗口尺寸，确保内容不被挤压
         base_width, base_height = 750, 800
@@ -362,31 +366,37 @@ class MainWindow(QMainWindow):
         """)
         title_layout = QVBoxLayout(title_frame)
         
-        title_label = QLabel("🎮 买块联机 - 房主工具")
+        title_label = QLabel("🎮 买块联机工具")
         title_label.setStyleSheet("color: white; font-size: 18pt; font-weight: bold;")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_layout.addWidget(title_label)
         
-        subtitle_label = QLabel("⚠️ 此工具仅供房主使用，玩家无需操作")
+        subtitle_label = QLabel("💡 房主和玩家都需要使用此工具进行测试")
         subtitle_label.setStyleSheet("color: rgba(255,255,255,0.9); font-size: 10pt;")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_layout.addWidget(subtitle_label)
         
         main_layout.addWidget(title_frame)
         
-        # 警告提示 - 固定高度
+        # 使用步骤提示
         warning_frame = QFrame()
-        warning_frame.setFixedHeight(int(50 * self.scale))
+        warning_frame.setFixedHeight(int(70 * self.scale))
         warning_frame.setStyleSheet(f"""
             QFrame {{
-                background-color: #FFF3E0;
-                border: 2px solid {THEME['warning']};
+                background-color: #E3F2FD;
+                border: 2px solid {THEME['primary']};
                 border-radius: 8px;
             }}
         """)
-        warning_layout = QHBoxLayout(warning_frame)
-        warning_label = QLabel("⚠️ 重要提示：结束联机后，请务必点击「删除规则」按钮关闭端口，确保网络安全！")
-        warning_label.setStyleSheet(f"color: #E65100; font-size: 10pt; font-weight: bold;")
+        warning_layout = QVBoxLayout(warning_frame)
+        warning_layout.setContentsMargins(10, 5, 10, 5)
+        
+        warning_title = QLabel("📋 使用步骤")
+        warning_title.setStyleSheet(f"color: {THEME['primary_dark']}; font-size: 10pt; font-weight: bold;")
+        warning_layout.addWidget(warning_title)
+        
+        warning_label = QLabel("1️⃣ 双方交换 IPv6 地址 → 2️⃣ 点击「连通性测试」判断谁当房主 → 3️⃣ 房主设置端口并开房 → 4️⃣ 结束后删除规则")
+        warning_label.setStyleSheet(f"color: {THEME['primary_dark']}; font-size: 9pt;")
         warning_label.setWordWrap(True)
         warning_layout.addWidget(warning_label)
         main_layout.addWidget(warning_frame)
@@ -427,7 +437,7 @@ class MainWindow(QMainWindow):
         main_layout.addLayout(btn_layout)
         
         # 防火墙设置区域
-        firewall_group = QGroupBox("🔥 防火墙入站规则设置（房主专用）")
+        firewall_group = QGroupBox("🔥 防火墙端口设置（仅房主需要）")
         firewall_group.setStyleSheet(f"""
             QGroupBox {{
                 font-size: 10pt;

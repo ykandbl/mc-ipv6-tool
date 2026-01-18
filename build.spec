@@ -18,6 +18,7 @@ a = Analysis(
         'clipboard',
         'browser',
         'firewall',
+        'connectivity_test',
     ],
     hookspath=[],
     hooksconfig={},

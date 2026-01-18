@@ -35,9 +35,6 @@ env/
 *.manifest
 *.spec.bak
 
-# Kiro
-.kiro/
-
 # OS
 .DS_Store
 Thumbs.db

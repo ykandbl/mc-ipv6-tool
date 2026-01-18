@@ -2,15 +2,16 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QScrollArea, QFrame, QMessageBox, QApplication,
-    QLineEdit, QGroupBox
+    QLineEdit, QGroupBox, QProgressBar, QDialog, QTextEdit
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QFont, QPalette, QColor
 
 from scanner import IPv6Scanner, IPv6Address
 from clipboard import ClipboardHandler
 from browser import BrowserLauncher
 from firewall import set_firewall_port, remove_firewall_port
+from connectivity_test import ConnectivityTester
 
 
 # 主题颜色
@@ -39,6 +40,193 @@ def get_scale_factor() -> float:
     base_width = 1920
     scale = size.width() / base_width
     return max(0.8, min(1.5, scale))
+
+
+class TestThread(QThread):
+    """测试线程"""
+    progress = pyqtSignal(int, str)
+    finished = pyqtSignal(dict)
+    
+    def __init__(self, local_addr, remote_addr):
+        super().__init__()
+        self.local_addr = local_addr
+        self.remote_addr = remote_addr
+        self.tester = ConnectivityTester()
+    
+    def run(self):
+        result = self.tester.test_bidirectional(
+            self.local_addr,
+            self.remote_addr,
+            callback=self.progress.emit
+        )
+        self.finished.emit(result)
+
+
+class ConnectivityTestDialog(QDialog):
+    """连通性测试对话框"""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("IPv6 连通性测试")
+        self.setFixedSize(500, 400)
+        self._setup_ui()
+    
+    def _setup_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setSpacing(15)
+        
+        # 说明
+        info_label = QLabel("测试你和对方的 IPv6 连通性，判断谁适合当房主")
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet(f"color: {THEME['text_secondary']}; padding: 10px;")
+        layout.addWidget(info_label)
+        
+        # 输入区域
+        input_group = QGroupBox("输入对方的 IPv6 地址")
+        input_layout = QVBoxLayout(input_group)
+        
+        self.remote_input = QLineEdit()
+        self.remote_input.setPlaceholderText("如: 2409:890d:380:18a3:5ad:de6b:8552:ff6a")
+        self.remote_input.setStyleSheet(f"""
+            QLineEdit {{
+                border: 1px solid {THEME['border']};
+                border-radius: 4px;
+                padding: 8px;
+                font-size: 10pt;
+            }}
+        """)
+        input_layout.addWidget(self.remote_input)
+        layout.addWidget(input_group)
+        
+        # 进度条
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setStyleSheet(f"""
+            QProgressBar {{
+                border: 1px solid {THEME['border']};
+                border-radius: 4px;
+                text-align: center;
+            }}
+            QProgressBar::chunk {{
+                background-color: {THEME['primary']};
+            }}
+        """)
+        self.progress_bar.setVisible(False)
+        layout.addWidget(self.progress_bar)
+        
+        # 状态标签
+        self.status_label = QLabel("")
+        self.status_label.setStyleSheet(f"color: {THEME['text_secondary']};")
+        self.status_label.setVisible(False)
+        layout.addWidget(self.status_label)
+        
+        # 结果显示
+        self.result_text = QTextEdit()
+        self.result_text.setReadOnly(True)
+        self.result_text.setStyleSheet(f"""
+            QTextEdit {{
+                border: 1px solid {THEME['border']};
+                border-radius: 4px;
+                padding: 10px;
+                background-color: {THEME['card_bg']};
+            }}
+        """)
+        self.result_text.setVisible(False)
+        layout.addWidget(self.result_text)
+        
+        # 按钮
+        btn_layout = QHBoxLayout()
+        
+        self.test_btn = QPushButton("🔍 开始测试")
+        self.test_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {THEME['primary']};
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 10px 20px;
+                font-weight: bold;
+            }}
+            QPushButton:hover {{
+                background-color: {THEME['primary_dark']};
+            }}
+            QPushButton:disabled {{
+                background-color: {THEME['border']};
+            }}
+        """)
+        self.test_btn.clicked.connect(self.start_test)
+        btn_layout.addWidget(self.test_btn)
+        
+        close_btn = QPushButton("关闭")
+        close_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {THEME['card_bg']};
+                border: 1px solid {THEME['border']};
+                border-radius: 4px;
+                padding: 10px 20px;
+            }}
+        """)
+        close_btn.clicked.connect(self.close)
+        btn_layout.addWidget(close_btn)
+        
+        layout.addLayout(btn_layout)
+    
+    def start_test(self):
+        remote_addr = self.remote_input.text().strip()
+        
+        if not remote_addr:
+            QMessageBox.warning(self, "提示", "请输入对方的 IPv6 地址")
+            return
+        
+        # 获取本地地址
+        from scanner import IPv6Scanner
+        scanner = IPv6Scanner()
+        addresses = scanner.scan_all_interfaces()
+        usable_addrs = [addr for addr in addresses if addr.is_usable]
+        
+        if not usable_addrs:
+            QMessageBox.warning(self, "错误", "未找到可用的 IPv6 地址")
+            return
+        
+        local_addr = usable_addrs[0].address
+        
+        # 开始测试
+        self.test_btn.setEnabled(False)
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setValue(0)
+        self.status_label.setVisible(True)
+        self.result_text.setVisible(False)
+        
+        self.test_thread = TestThread(local_addr, remote_addr)
+        self.test_thread.progress.connect(self.on_progress)
+        self.test_thread.finished.connect(self.on_finished)
+        self.test_thread.start()
+    
+    def on_progress(self, value, message):
+        self.progress_bar.setValue(value)
+        self.status_label.setText(message)
+    
+    def on_finished(self, result):
+        self.test_btn.setEnabled(True)
+        self.progress_bar.setVisible(False)
+        self.status_label.setVisible(False)
+        self.result_text.setVisible(True)
+        
+        # 显示结果
+        text = f"""
+【测试结果】
+
+运营商信息：
+  你的运营商: {result['local_isp']}
+  对方运营商: {result['remote_isp']}
+  {'⚠️ 跨运营商连接' if result['cross_isp'] else '✅ 同运营商'}
+
+连通性测试：
+  你 → 对方: {result['local_to_remote']['message']}
+
+【建议】
+{result['recommendation']}
+"""
+        self.result_text.setText(text.strip())
 
 
 class AddressCard(QFrame):
@@ -230,6 +418,11 @@ class MainWindow(QMainWindow):
         test_btn.clicked.connect(self._open_ipv6_test)
         btn_layout.addWidget(test_btn)
         
+        connectivity_btn = QPushButton("🔍 连通性测试")
+        connectivity_btn.setStyleSheet(btn_style)
+        connectivity_btn.clicked.connect(self._open_connectivity_test)
+        btn_layout.addWidget(connectivity_btn)
+        
         btn_layout.addStretch()
         main_layout.addLayout(btn_layout)
         
@@ -380,6 +573,11 @@ class MainWindow(QMainWindow):
         """打开 GitHub 项目页面"""
         import webbrowser
         webbrowser.open("https://github.com/ykandbl/mc-ipv6-tool")
+    
+    def _open_connectivity_test(self):
+        """打开连通性测试对话框"""
+        dialog = ConnectivityTestDialog(self)
+        dialog.exec()
     
     def _sort_addresses(self, addresses):
         """排序地址：临时地址 > 正常地址 > 本地地址"""

@@ -142,12 +142,12 @@ class ConnectivityTester:
         
         # 生成建议
         if result['local_to_remote']['success']:
-            result['recommendation'] = "✅ 你可以连接到对方，建议你当房主开房"
+            result['recommendation'] = "✅ 你可以连接到对方，建议对方当房主开房，你去加入"
         else:
             if result['cross_isp']:
-                result['recommendation'] = "⚠️ 跨运营商连接失败，建议让对方当房主，或使用 VPN 组网"
+                result['recommendation'] = "⚠️ 你连不到对方（跨运营商），建议你当房主开房，让对方来连你"
             else:
-                result['recommendation'] = "❌ 连接失败，请检查对方网络或防火墙设置"
+                result['recommendation'] = "❌ 你连不到对方，建议你当房主开房，或检查对方网络"
         
         return result
     

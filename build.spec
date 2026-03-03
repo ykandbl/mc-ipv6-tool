@@ -39,7 +39,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='IPv6Tool',
+    name='买块联机工具_V1.2.1',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

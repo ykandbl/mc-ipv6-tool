@@ -1,26 +1,21 @@
 # -*- mode: python ; coding: utf-8 -*-
 # PyInstaller 配置文件
+import os
+from PyInstaller.utils.hooks import collect_submodules
 
 block_cipher = None
 
+# 收集src目录下的所有模块
+src_path = os.path.join(os.getcwd(), 'src')
+
 a = Analysis(
     ['src/main.py'],
-    pathex=['src', 'src/ui'],
+    pathex=[src_path, os.path.join(src_path, 'ui')],
     binaries=[],
     datas=[],
     hiddenimports=[
         'PyQt6.sip',
-        'ui',
-        'ui.main_window',
-        'ui.splash',
-        'ui.__init__',
-        'scanner',
-        'validator',
-        'clipboard',
-        'browser',
-        'firewall',
-        'connectivity_test',
-    ],
+    ] + collect_submodules('src'),
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

@@ -4,7 +4,14 @@ import os
 import ctypes
 
 # 添加 src 目录到路径
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+if getattr(sys, 'frozen', False):
+    # 打包后的环境
+    application_path = os.path.dirname(sys.executable)
+    sys.path.insert(0, application_path)
+else:
+    # 开发环境
+    application_path = os.path.dirname(os.path.abspath(__file__))
+    sys.path.insert(0, application_path)
 
 from PyQt6.QtWidgets import QApplication, QMessageBox
 from PyQt6.QtCore import QTimer
@@ -68,7 +75,11 @@ def main():
             sys.exit(0)
     
     # 显示启动画面
-    from ui.splash import SplashScreen
+    try:
+        from ui.splash import SplashScreen
+    except ImportError:
+        from splash import SplashScreen
+    
     splash = SplashScreen()
     splash.show()
     app.processEvents()
@@ -81,9 +92,7 @@ def main():
     try:
         from ui.main_window import MainWindow
     except ImportError:
-        # 如果打包后路径不对，尝试直接导入
-        import main_window
-        MainWindow = main_window.MainWindow
+        from main_window import MainWindow
     app.processEvents()
     
     splash.set_progress(50, "正在扫描网络...")

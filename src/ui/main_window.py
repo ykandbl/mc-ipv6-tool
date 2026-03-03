@@ -534,15 +534,6 @@ class MainWindow(QMainWindow):
             QPushButton:hover {{
                 background-color: #C62828;
             }}
-        """)                color: white;
-                border: none;
-                border-radius: 4px;
-                padding: 8px 16px;
-                font-weight: bold;
-            }}
-            QPushButton:hover {{
-                background-color: #E53935;
-            }}
         """)
         delete_rule_btn.clicked.connect(self._delete_firewall_rule)
         firewall_layout.addWidget(delete_rule_btn)

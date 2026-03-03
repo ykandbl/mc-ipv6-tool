@@ -444,12 +444,12 @@ class MainWindow(QMainWindow):
         refresh_btn.clicked.connect(self._refresh_addresses)
         btn_layout.addWidget(refresh_btn)
         
-        test_btn = QPushButton("🌐 IPv6 连通性测试")
+        test_btn = QPushButton("🌐 测试本机IPv6")
         test_btn.setStyleSheet(btn_style)
         test_btn.clicked.connect(self._open_ipv6_test)
         btn_layout.addWidget(test_btn)
         
-        connectivity_btn = QPushButton("🔍 连通性测试")
+        connectivity_btn = QPushButton("🔍 双向连通性测试")
         connectivity_btn.setStyleSheet(btn_style)
         connectivity_btn.clicked.connect(self._open_connectivity_test)
         btn_layout.addWidget(connectivity_btn)

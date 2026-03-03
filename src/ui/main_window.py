@@ -338,10 +338,10 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("🎮 买块联机工具")
         
         # 设置更大的窗口尺寸，确保内容不被挤压
-        base_width, base_height = 750, 800
+        base_width, base_height = 800, 900
         width = int(base_width * self.scale)
         height = int(base_height * self.scale)
-        self.setMinimumSize(int(700 * self.scale), int(700 * self.scale))
+        self.setMinimumSize(int(750 * self.scale), int(800 * self.scale))
         self.resize(width, height)
         
         self.setStyleSheet(f"QMainWindow {{ background-color: {THEME['bg']}; }}")
@@ -354,9 +354,9 @@ class MainWindow(QMainWindow):
         main_layout.setContentsMargins(margin, margin, margin, margin)
         main_layout.setSpacing(int(12 * self.scale))
         
-        # 标题区域 - 固定高度
+        # 标题区域 - 增加高度和间距
         title_frame = QFrame()
-        title_frame.setFixedHeight(int(100 * self.scale))
+        title_frame.setFixedHeight(int(120 * self.scale))
         title_frame.setStyleSheet(f"""
             QFrame {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
@@ -365,22 +365,25 @@ class MainWindow(QMainWindow):
             }}
         """)
         title_layout = QVBoxLayout(title_frame)
+        title_layout.setSpacing(int(8 * self.scale))
+        title_layout.setContentsMargins(15, 15, 15, 15)
         
         title_label = QLabel("🎮 买块联机工具")
-        title_label.setStyleSheet("color: white; font-size: 18pt; font-weight: bold;")
+        title_label.setStyleSheet(f"color: white; font-size: {int(18 * self.scale)}pt; font-weight: bold;")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_layout.addWidget(title_label)
         
         subtitle_label = QLabel("💡 房主和玩家都需要使用此工具进行测试")
-        subtitle_label.setStyleSheet("color: rgba(255,255,255,0.9); font-size: 10pt;")
+        subtitle_label.setStyleSheet(f"color: rgba(255,255,255,0.9); font-size: {int(11 * self.scale)}pt;")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        subtitle_label.setWordWrap(True)
         title_layout.addWidget(subtitle_label)
         
         main_layout.addWidget(title_frame)
         
-        # 使用步骤提示
+        # 使用步骤提示 - 增加高度和更好的布局
         warning_frame = QFrame()
-        warning_frame.setFixedHeight(int(70 * self.scale))
+        warning_frame.setMinimumHeight(int(90 * self.scale))
         warning_frame.setStyleSheet(f"""
             QFrame {{
                 background-color: #E3F2FD;
@@ -389,27 +392,30 @@ class MainWindow(QMainWindow):
             }}
         """)
         warning_layout = QVBoxLayout(warning_frame)
-        warning_layout.setContentsMargins(10, 5, 10, 5)
+        warning_layout.setContentsMargins(15, 10, 15, 10)
+        warning_layout.setSpacing(int(8 * self.scale))
         
         warning_title = QLabel("📋 使用步骤")
-        warning_title.setStyleSheet(f"color: {THEME['primary_dark']}; font-size: 10pt; font-weight: bold;")
+        warning_title.setStyleSheet(f"color: {THEME['primary_dark']}; font-size: {int(11 * self.scale)}pt; font-weight: bold;")
         warning_layout.addWidget(warning_title)
         
         warning_label = QLabel("1️⃣ 双方交换 IPv6 地址 → 2️⃣ 点击「连通性测试」判断谁当房主 → 3️⃣ 房主设置端口并开房 → 4️⃣ 结束后删除规则")
-        warning_label.setStyleSheet(f"color: {THEME['primary_dark']}; font-size: 9pt;")
+        warning_label.setStyleSheet(f"color: {THEME['primary_dark']}; font-size: {int(10 * self.scale)}pt; line-height: 1.4;")
         warning_label.setWordWrap(True)
         warning_layout.addWidget(warning_label)
         main_layout.addWidget(warning_frame)
         
-        # 顶部按钮区域
+        # 顶部按钮区域 - 增加间距
         btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(int(10 * self.scale))
         btn_style = f"""
             QPushButton {{
                 background-color: {THEME['card_bg']};
                 border: 1px solid {THEME['border']};
                 border-radius: 6px;
-                padding: 8px 16px;
-                font-size: 10pt;
+                padding: {int(10 * self.scale)}px {int(16 * self.scale)}px;
+                font-size: {int(10 * self.scale)}pt;
+                min-height: {int(35 * self.scale)}px;
             }}
             QPushButton:hover {{
                 background-color: {THEME['primary']};

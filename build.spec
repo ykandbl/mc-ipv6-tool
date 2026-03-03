@@ -39,7 +39,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='买块联机工具_V1.2.1',
+    name='mc_ipv6_V1.2.2',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

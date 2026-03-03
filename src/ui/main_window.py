@@ -71,8 +71,78 @@ class ConnectivityTestDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("IPv6 连通性测试")
-        self.setFixedSize(500, 400)
+        self.setFixedSize(520, 450)
         self._setup_ui()
+    
+    def _validate_ipv6(self, address: str) -> tuple[bool, str]:
+        """
+        验证并清理IPv6地址
+        Returns: (是否有效, 清理后的地址)
+        """
+        if not address:
+            return False, ""
+        
+        # 移除常见的多余字符
+        address = address.strip()
+        # 移除方括号 [2409:...]:
+        address = address.strip('[]')
+        # 移除末尾的冒号和端口
+        if address.endswith(':'):
+            address = address[:-1]
+        # 如果有端口号，移除它
+        if ']:' in address:
+            address = address.split(']:')[0].strip('[')
+        
+        # 基本格式检查：IPv6地址应该包含冒号
+        if ':' not in address:
+            return False, address
+        
+        # 检查是否符合IPv6格式（简单验证）
+        parts = address.split(':')
+        
+        # IPv6地址应该有2-8个部分
+        if len(parts) < 2 or len(parts) > 8:
+            return False, address
+        
+        # 检查每个部分是否是有效的十六进制（最多4位）
+        for part in parts:
+            if part == '':  # 允许 :: 压缩格式
+                continue
+            if len(part) > 4:
+                return False, address
+            try:
+                int(part, 16)
+            except ValueError:
+                return False, address
+        
+        return True, address
+    
+    def _on_input_changed(self):
+        """输入框内容改变时的处理"""
+        text = self.remote_input.text().strip()
+        
+        if not text:
+            self.validation_label.setText("")
+            self.validation_label.setVisible(False)
+            self.test_btn.setEnabled(False)
+            return
+        
+        is_valid, cleaned = self._validate_ipv6(text)
+        
+        if is_valid:
+            self.validation_label.setText("✅ 地址格式正确")
+            self.validation_label.setStyleSheet(f"color: {THEME['success']}; font-size: 9pt;")
+            self.validation_label.setVisible(True)
+            self.test_btn.setEnabled(True)
+            
+            # 如果清理后的地址与输入不同，自动更新
+            if cleaned != text:
+                self.remote_input.setText(cleaned)
+        else:
+            self.validation_label.setText("❌ 地址格式不正确，请检查")
+            self.validation_label.setStyleSheet(f"color: {THEME['danger']}; font-size: 9pt;")
+            self.validation_label.setVisible(True)
+            self.test_btn.setEnabled(False)
     
     def _setup_ui(self):
         layout = QVBoxLayout(self)
@@ -92,13 +162,24 @@ class ConnectivityTestDialog(QDialog):
         self.remote_input.setPlaceholderText("如: 2409:890d:380:18a3:5ad:de6b:8552:ff6a")
         self.remote_input.setStyleSheet(f"""
             QLineEdit {{
-                border: 1px solid {THEME['border']};
-                border-radius: 4px;
-                padding: 8px;
+                border: 2px solid {THEME['border']};
+                border-radius: 6px;
+                padding: 10px;
                 font-size: 10pt;
+                font-family: Consolas, monospace;
+            }}
+            QLineEdit:focus {{
+                border-color: {THEME['primary']};
             }}
         """)
+        self.remote_input.textChanged.connect(self._on_input_changed)
         input_layout.addWidget(self.remote_input)
+        
+        # 验证提示标签
+        self.validation_label = QLabel("")
+        self.validation_label.setVisible(False)
+        input_layout.addWidget(self.validation_label)
+        
         layout.addWidget(input_group)
         
         # 进度条
@@ -140,20 +221,23 @@ class ConnectivityTestDialog(QDialog):
         btn_layout = QHBoxLayout()
         
         self.test_btn = QPushButton("🔍 开始测试")
+        self.test_btn.setEnabled(False)  # 初始禁用
         self.test_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {THEME['primary']};
                 color: white;
                 border: none;
-                border-radius: 4px;
-                padding: 10px 20px;
+                border-radius: 6px;
+                padding: 12px 24px;
                 font-weight: bold;
+                font-size: 10pt;
             }}
-            QPushButton:hover {{
+            QPushButton:hover:enabled {{
                 background-color: {THEME['primary_dark']};
             }}
             QPushButton:disabled {{
                 background-color: {THEME['border']};
+                color: {THEME['text_secondary']};
             }}
         """)
         self.test_btn.clicked.connect(self.start_test)
@@ -163,9 +247,13 @@ class ConnectivityTestDialog(QDialog):
         close_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {THEME['card_bg']};
-                border: 1px solid {THEME['border']};
-                border-radius: 4px;
-                padding: 10px 20px;
+                border: 2px solid {THEME['border']};
+                border-radius: 6px;
+                padding: 12px 24px;
+                font-size: 10pt;
+            }}
+            QPushButton:hover {{
+                border-color: {THEME['primary']};
             }}
         """)
         close_btn.clicked.connect(self.close)
@@ -176,8 +264,13 @@ class ConnectivityTestDialog(QDialog):
     def start_test(self):
         remote_addr = self.remote_input.text().strip()
         
-        if not remote_addr:
-            QMessageBox.warning(self, "提示", "请输入对方的 IPv6 地址")
+        # 再次验证
+        is_valid, cleaned_addr = self._validate_ipv6(remote_addr)
+        if not is_valid:
+            QMessageBox.warning(self, "提示", "请输入正确的 IPv6 地址格式")
+            return
+        
+        remote_addr = cleaned_addr
             return
         
         # 获取本地地址

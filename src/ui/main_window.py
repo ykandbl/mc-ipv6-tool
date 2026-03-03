@@ -14,20 +14,23 @@ from firewall import set_firewall_port, remove_firewall_port
 from connectivity_test import ConnectivityTester
 
 
-# 主题颜色
+# 主题颜色 - 现代深蓝配色方案
 THEME = {
-    "primary": "#2196F3",
-    "primary_dark": "#1976D2",
-    "accent": "#FF9800",
+    "primary": "#1e3c72",
+    "primary_dark": "#152a52",
+    "primary_light": "#2a5298",
+    "accent": "#4CAF50",
+    "accent_hover": "#43A047",
     "success": "#4CAF50",
-    "danger": "#f44336",
+    "danger": "#E53935",
     "warning": "#FF9800",
-    "bg": "#f5f5f5",
+    "bg": "#f0f2f5",
     "card_bg": "#ffffff",
-    "text": "#333333",
-    "text_secondary": "#666666",
-    "border": "#e0e0e0",
-    "recommend": "#FF9800"
+    "text": "#2c3e50",
+    "text_secondary": "#7f8c8d",
+    "border": "#dfe6e9",
+    "recommend": "#FF9800",
+    "shadow": "rgba(0, 0, 0, 0.1)"
 }
 
 
@@ -245,24 +248,26 @@ class AddressCard(QFrame):
     
     def _setup_ui(self):
         border_color = THEME['recommend'] if self.is_recommended else THEME['border']
-        border_width = 2 if self.is_recommended else 1
+        border_width = 3 if self.is_recommended else 2
         
         self.setStyleSheet(f"""
             AddressCard {{
                 background-color: {THEME['card_bg']};
                 border: {border_width}px solid {border_color};
-                border-radius: 8px;
+                border-radius: 10px;
             }}
             AddressCard:hover {{
                 border-color: {THEME['primary']};
+                background-color: #fafbfc;
             }}
         """)
         
         layout = QHBoxLayout(self)
-        margin = int(12 * self.scale)
-        layout.setContentsMargins(margin, int(10 * self.scale), margin, int(10 * self.scale))
+        margin = int(15 * self.scale)
+        layout.setContentsMargins(margin, int(12 * self.scale), margin, int(12 * self.scale))
         
         info_layout = QVBoxLayout()
+        info_layout.setSpacing(int(6 * self.scale))
         
         addr_label = QLabel(self.ipv6_addr.address)
         addr_font = QFont("Consolas", int(11 * self.scale))
@@ -270,7 +275,7 @@ class AddressCard(QFrame):
         addr_label.setFont(addr_font)
         
         if self.ipv6_addr.is_usable:
-            addr_label.setStyleSheet(f"color: {THEME['primary_dark']};")
+            addr_label.setStyleSheet(f"color: {THEME['primary']};")
         else:
             addr_label.setStyleSheet(f"color: {THEME['danger']};")
         
@@ -291,23 +296,24 @@ class AddressCard(QFrame):
             recommend_label.setStyleSheet(f"""
                 background-color: {THEME['recommend']};
                 color: white;
-                border-radius: 4px;
-                padding: 4px 8px;
+                border-radius: 5px;
+                padding: 5px 12px;
                 font-weight: bold;
                 font-size: {int(9 * self.scale)}pt;
             """)
             layout.addWidget(recommend_label)
         
         copy_btn = QPushButton("📋 复制")
-        copy_btn.setFixedWidth(int(70 * self.scale))
+        copy_btn.setFixedWidth(int(80 * self.scale))
         copy_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {THEME['primary']};
                 color: white;
                 border: none;
-                border-radius: 4px;
-                padding: 6px 12px;
+                border-radius: 6px;
+                padding: 8px 14px;
                 font-weight: bold;
+                font-size: {int(9 * self.scale)}pt;
             }}
             QPushButton:hover {{
                 background-color: {THEME['primary_dark']};
@@ -335,13 +341,13 @@ class MainWindow(QMainWindow):
         self._refresh_addresses()
     
     def _setup_ui(self):
-        self.setWindowTitle("🎮 买块联机工具")
+        self.setWindowTitle("🎮 我的世界 IPv6 联机工具")
         
         # 设置更大的窗口尺寸，确保内容不被挤压
-        base_width, base_height = 800, 900
+        base_width, base_height = 850, 950
         width = int(base_width * self.scale)
         height = int(base_height * self.scale)
-        self.setMinimumSize(int(750 * self.scale), int(800 * self.scale))
+        self.setMinimumSize(int(800 * self.scale), int(850 * self.scale))
         self.resize(width, height)
         
         self.setStyleSheet(f"QMainWindow {{ background-color: {THEME['bg']}; }}")
@@ -356,71 +362,80 @@ class MainWindow(QMainWindow):
         
         # 标题区域 - 增加高度和间距
         title_frame = QFrame()
-        title_frame.setFixedHeight(int(120 * self.scale))
+        title_frame.setFixedHeight(int(140 * self.scale))
         title_frame.setStyleSheet(f"""
             QFrame {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 {THEME['primary']}, stop:1 {THEME['primary_dark']});
-                border-radius: 10px;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 {THEME['primary']}, stop:1 {THEME['primary_light']});
+                border-radius: 12px;
+                border: 1px solid rgba(255,255,255,0.1);
             }}
         """)
         title_layout = QVBoxLayout(title_frame)
-        title_layout.setSpacing(int(8 * self.scale))
-        title_layout.setContentsMargins(15, 15, 15, 15)
+        title_layout.setSpacing(int(10 * self.scale))
+        title_layout.setContentsMargins(20, 20, 20, 20)
         
-        title_label = QLabel("🎮 买块联机工具")
-        title_label.setStyleSheet(f"color: white; font-size: {int(18 * self.scale)}pt; font-weight: bold;")
+        title_label = QLabel("🎮 我的世界 IPv6 联机工具")
+        title_label.setStyleSheet(f"color: white; font-size: {int(20 * self.scale)}pt; font-weight: bold;")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_layout.addWidget(title_label)
         
-        subtitle_label = QLabel("💡 房主和玩家都需要使用此工具进行测试")
-        subtitle_label.setStyleSheet(f"color: rgba(255,255,255,0.9); font-size: {int(11 * self.scale)}pt;")
+        subtitle_label = QLabel("Minecraft IPv6 Connection Tool")
+        subtitle_label.setStyleSheet(f"color: rgba(255,255,255,0.8); font-size: {int(10 * self.scale)}pt;")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle_label.setWordWrap(True)
         title_layout.addWidget(subtitle_label)
+        
+        desc_label = QLabel("💡 房主和玩家都需要使用此工具进行测试")
+        desc_label.setStyleSheet(f"color: rgba(255,255,255,0.95); font-size: {int(11 * self.scale)}pt;")
+        desc_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        desc_label.setWordWrap(True)
+        title_layout.addWidget(desc_label)
         
         main_layout.addWidget(title_frame)
         
         # 使用步骤提示 - 增加高度和更好的布局
         warning_frame = QFrame()
-        warning_frame.setMinimumHeight(int(90 * self.scale))
+        warning_frame.setMinimumHeight(int(100 * self.scale))
         warning_frame.setStyleSheet(f"""
             QFrame {{
-                background-color: #E3F2FD;
-                border: 2px solid {THEME['primary']};
-                border-radius: 8px;
+                background-color: #E8F5E9;
+                border: 2px solid {THEME['accent']};
+                border-radius: 10px;
             }}
         """)
         warning_layout = QVBoxLayout(warning_frame)
-        warning_layout.setContentsMargins(15, 10, 15, 10)
-        warning_layout.setSpacing(int(8 * self.scale))
+        warning_layout.setContentsMargins(20, 12, 20, 12)
+        warning_layout.setSpacing(int(10 * self.scale))
         
         warning_title = QLabel("📋 使用步骤")
-        warning_title.setStyleSheet(f"color: {THEME['primary_dark']}; font-size: {int(11 * self.scale)}pt; font-weight: bold;")
+        warning_title.setStyleSheet(f"color: {THEME['accent']}; font-size: {int(12 * self.scale)}pt; font-weight: bold;")
         warning_layout.addWidget(warning_title)
         
         warning_label = QLabel("1️⃣ 双方交换 IPv6 地址 → 2️⃣ 点击「连通性测试」判断谁当房主 → 3️⃣ 房主设置端口并开房 → 4️⃣ 结束后删除规则")
-        warning_label.setStyleSheet(f"color: {THEME['primary_dark']}; font-size: {int(10 * self.scale)}pt; line-height: 1.4;")
+        warning_label.setStyleSheet(f"color: {THEME['text']}; font-size: {int(10 * self.scale)}pt; line-height: 1.5;")
         warning_label.setWordWrap(True)
         warning_layout.addWidget(warning_label)
         main_layout.addWidget(warning_frame)
         
         # 顶部按钮区域 - 增加间距
         btn_layout = QHBoxLayout()
-        btn_layout.setSpacing(int(10 * self.scale))
+        btn_layout.setSpacing(int(12 * self.scale))
         btn_style = f"""
             QPushButton {{
                 background-color: {THEME['card_bg']};
-                border: 1px solid {THEME['border']};
-                border-radius: 6px;
-                padding: {int(10 * self.scale)}px {int(16 * self.scale)}px;
+                border: 2px solid {THEME['border']};
+                border-radius: 8px;
+                padding: {int(12 * self.scale)}px {int(20 * self.scale)}px;
                 font-size: {int(10 * self.scale)}pt;
-                min-height: {int(35 * self.scale)}px;
+                min-height: {int(40 * self.scale)}px;
+                color: {THEME['text']};
+                font-weight: 500;
             }}
             QPushButton:hover {{
                 background-color: {THEME['primary']};
                 color: white;
                 border-color: {THEME['primary']};
+                transform: translateY(-2px);
             }}
         """
         
@@ -446,38 +461,40 @@ class MainWindow(QMainWindow):
         firewall_group = QGroupBox("🔥 防火墙端口设置（仅房主需要）")
         firewall_group.setStyleSheet(f"""
             QGroupBox {{
-                font-size: 10pt;
+                font-size: 11pt;
                 font-weight: bold;
                 color: {THEME['text']};
                 background-color: {THEME['card_bg']};
-                border: 1px solid {THEME['border']};
-                border-radius: 8px;
-                margin-top: 10px;
-                padding-top: 10px;
+                border: 2px solid {THEME['border']};
+                border-radius: 10px;
+                margin-top: 12px;
+                padding-top: 12px;
             }}
             QGroupBox::title {{
                 subcontrol-origin: margin;
-                left: 15px;
-                padding: 0 8px;
+                left: 20px;
+                padding: 0 10px;
                 background-color: {THEME['card_bg']};
             }}
         """)
         firewall_layout = QHBoxLayout(firewall_group)
-        firewall_layout.setContentsMargins(15, 20, 15, 15)
+        firewall_layout.setContentsMargins(20, 25, 20, 20)
+        firewall_layout.setSpacing(int(12 * self.scale))
         
         port_label = QLabel("端口:")
-        port_label.setStyleSheet(f"color: {THEME['text']}; font-weight: normal;")
+        port_label.setStyleSheet(f"color: {THEME['text']}; font-weight: normal; font-size: 10pt;")
         firewall_layout.addWidget(port_label)
         
         self.port_input = QLineEdit()
         self.port_input.setPlaceholderText("如: 8080 或 80,443 或 5000-5010")
-        self.port_input.setFixedWidth(int(200 * self.scale))
+        self.port_input.setFixedWidth(int(220 * self.scale))
         self.port_input.setStyleSheet(f"""
             QLineEdit {{
-                border: 1px solid {THEME['border']};
-                border-radius: 4px;
-                padding: 6px 10px;
+                border: 2px solid {THEME['border']};
+                border-radius: 6px;
+                padding: 8px 12px;
                 font-size: 10pt;
+                background-color: white;
             }}
             QLineEdit:focus {{
                 border-color: {THEME['primary']};
@@ -491,12 +508,13 @@ class MainWindow(QMainWindow):
                 background-color: {THEME['success']};
                 color: white;
                 border: none;
-                border-radius: 4px;
-                padding: 8px 16px;
+                border-radius: 6px;
+                padding: 10px 20px;
                 font-weight: bold;
+                font-size: 10pt;
             }}
             QPushButton:hover {{
-                background-color: #43A047;
+                background-color: {THEME['accent_hover']};
             }}
         """)
         set_port_btn.clicked.connect(self._set_firewall_port)
@@ -507,6 +525,16 @@ class MainWindow(QMainWindow):
             QPushButton {{
                 background-color: {THEME['danger']};
                 color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 10px 20px;
+                font-weight: bold;
+                font-size: 10pt;
+            }}
+            QPushButton:hover {{
+                background-color: #C62828;
+            }}
+        """)                color: white;
                 border: none;
                 border-radius: 4px;
                 padding: 8px 16px;

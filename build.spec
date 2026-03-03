@@ -39,7 +39,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='mc_ipv6_V1.2.2',
+    name='mc_ipv6_V1.3.0',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

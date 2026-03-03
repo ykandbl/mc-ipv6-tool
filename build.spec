@@ -5,7 +5,7 @@ block_cipher = None
 
 a = Analysis(
     ['src/main.py'],
-    pathex=['src'],
+    pathex=['src', 'src/ui'],
     binaries=[],
     datas=[],
     hiddenimports=[
@@ -13,6 +13,7 @@ a = Analysis(
         'ui',
         'ui.main_window',
         'ui.splash',
+        'ui.__init__',
         'scanner',
         'validator',
         'clipboard',

@@ -78,7 +78,12 @@ def main():
     app.processEvents()
     
     splash.set_progress(30, "正在加载模块...")
-    from ui.main_window import MainWindow
+    try:
+        from ui.main_window import MainWindow
+    except ImportError:
+        # 如果打包后路径不对，尝试直接导入
+        import main_window
+        MainWindow = main_window.MainWindow
     app.processEvents()
     
     splash.set_progress(50, "正在扫描网络...")

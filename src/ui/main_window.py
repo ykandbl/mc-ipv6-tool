@@ -271,7 +271,6 @@ class ConnectivityTestDialog(QDialog):
             return
         
         remote_addr = cleaned_addr
-            return
         
         # 获取本地地址
         from scanner import IPv6Scanner

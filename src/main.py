@@ -2,16 +2,19 @@
 import sys
 import os
 import ctypes
+import importlib.util
 
 # 添加 src 目录到路径
 if getattr(sys, 'frozen', False):
     # 打包后的环境
-    application_path = os.path.dirname(sys.executable)
+    application_path = sys._MEIPASS
     sys.path.insert(0, application_path)
+    sys.path.insert(0, os.path.join(application_path, 'ui'))
 else:
     # 开发环境
     application_path = os.path.dirname(os.path.abspath(__file__))
     sys.path.insert(0, application_path)
+    sys.path.insert(0, os.path.join(application_path, 'ui'))
 
 from PyQt6.QtWidgets import QApplication, QMessageBox
 from PyQt6.QtCore import QTimer

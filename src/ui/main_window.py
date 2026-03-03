@@ -87,35 +87,20 @@ class ConnectivityTestDialog(QDialog):
         # 移除方括号 [2409:...]:
         address = address.strip('[]')
         # 移除末尾的冒号和端口
-        if address.endswith(':'):
+        if address.endswith(':') and not address.endswith('::'):
             address = address[:-1]
-        # 如果有端口号，移除它
+        # 如果有端口号，移除它 (格式如 [地址]:端口)
         if ']:' in address:
             address = address.split(']:')[0].strip('[')
         
-        # 基本格式检查：IPv6地址应该包含冒号
-        if ':' not in address:
+        # 使用Python内置的ipaddress模块验证
+        import ipaddress
+        try:
+            # 尝试解析为IPv6地址
+            ipaddress.IPv6Address(address)
+            return True, address
+        except (ipaddress.AddressValueError, ValueError):
             return False, address
-        
-        # 检查是否符合IPv6格式（简单验证）
-        parts = address.split(':')
-        
-        # IPv6地址应该有2-8个部分
-        if len(parts) < 2 or len(parts) > 8:
-            return False, address
-        
-        # 检查每个部分是否是有效的十六进制（最多4位）
-        for part in parts:
-            if part == '':  # 允许 :: 压缩格式
-                continue
-            if len(part) > 4:
-                return False, address
-            try:
-                int(part, 16)
-            except ValueError:
-                return False, address
-        
-        return True, address
     
     def _on_input_changed(self):
         """输入框内容改变时的处理"""

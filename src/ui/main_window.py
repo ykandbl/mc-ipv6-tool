@@ -71,7 +71,8 @@ class ConnectivityTestDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("IPv6 连通性测试")
-        self.setFixedSize(520, 450)
+        self.setFixedSize(540, 480)
+        self.auto_validate = True  # 默认开启自动验证
         self._setup_ui()
     
     def _validate_ipv6(self, address: str) -> tuple[bool, str]:
@@ -102,6 +103,30 @@ class ConnectivityTestDialog(QDialog):
         except (ipaddress.AddressValueError, ValueError):
             return False, address
     
+    def _toggle_mode(self):
+        """切换验证模式"""
+        self.auto_validate = not self.auto_validate
+        
+        if self.auto_validate:
+            self.mode_btn.setText("🔄 切换到手动模式")
+            self.mode_label.setText("当前模式：自动处理（推荐）")
+            self.mode_label.setStyleSheet(f"color: {THEME['success']}; font-size: 9pt; font-weight: bold;")
+            # 重新验证当前输入
+            self._on_input_changed()
+        else:
+            self.mode_btn.setText("🔄 切换到自动模式")
+            self.mode_label.setText("当前模式：手动输入")
+            self.mode_label.setStyleSheet(f"color: {THEME['warning']}; font-size: 9pt; font-weight: bold;")
+            # 手动模式下，只要有输入就启用按钮
+            if self.remote_input.text().strip():
+                self.validation_label.setText("ℹ️ 手动模式：不进行格式验证")
+                self.validation_label.setStyleSheet(f"color: {THEME['text_secondary']}; font-size: 9pt;")
+                self.validation_label.setVisible(True)
+                self.test_btn.setEnabled(True)
+            else:
+                self.validation_label.setVisible(False)
+                self.test_btn.setEnabled(False)
+    
     def _on_input_changed(self):
         """输入框内容改变时的处理"""
         text = self.remote_input.text().strip()
@@ -112,6 +137,15 @@ class ConnectivityTestDialog(QDialog):
             self.test_btn.setEnabled(False)
             return
         
+        # 手动模式：不验证，直接启用按钮
+        if not self.auto_validate:
+            self.validation_label.setText("ℹ️ 手动模式：不进行格式验证")
+            self.validation_label.setStyleSheet(f"color: {THEME['text_secondary']}; font-size: 9pt;")
+            self.validation_label.setVisible(True)
+            self.test_btn.setEnabled(True)
+            return
+        
+        # 自动模式：验证格式
         is_valid, cleaned = self._validate_ipv6(text)
         
         if is_valid:
@@ -138,6 +172,44 @@ class ConnectivityTestDialog(QDialog):
         info_label.setWordWrap(True)
         info_label.setStyleSheet(f"color: {THEME['text_secondary']}; padding: 10px; background-color: #F5F5F5; border-radius: 4px;")
         layout.addWidget(info_label)
+        
+        # 模式切换区域
+        mode_frame = QFrame()
+        mode_frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: #E8F5E9;
+                border: 1px solid {THEME['success']};
+                border-radius: 6px;
+                padding: 8px;
+            }}
+        """)
+        mode_layout = QHBoxLayout(mode_frame)
+        mode_layout.setContentsMargins(10, 8, 10, 8)
+        
+        self.mode_label = QLabel("当前模式：自动处理（推荐）")
+        self.mode_label.setStyleSheet(f"color: {THEME['success']}; font-size: 9pt; font-weight: bold;")
+        mode_layout.addWidget(self.mode_label)
+        
+        mode_layout.addStretch()
+        
+        self.mode_btn = QPushButton("🔄 切换到手动模式")
+        self.mode_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: white;
+                border: 1px solid {THEME['border']};
+                border-radius: 4px;
+                padding: 5px 12px;
+                font-size: 9pt;
+            }}
+            QPushButton:hover {{
+                background-color: {THEME['bg']};
+                border-color: {THEME['primary']};
+            }}
+        """)
+        self.mode_btn.clicked.connect(self._toggle_mode)
+        mode_layout.addWidget(self.mode_btn)
+        
+        layout.addWidget(mode_frame)
         
         # 输入区域
         input_group = QGroupBox("输入对方的 IPv6 地址")

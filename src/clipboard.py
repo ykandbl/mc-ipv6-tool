@@ -1,6 +1,6 @@
 """剪贴板处理器模块"""
-from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QClipboard
+from PyQt6.QtWidgets import QApplication
 
 
 class ClipboardHandler:
@@ -23,7 +23,7 @@ class ClipboardHandler:
                 return False
             clipboard.setText(text, QClipboard.Mode.Clipboard)
             return True
-        except Exception:
+        except RuntimeError:
             return False
     
     @staticmethod
@@ -39,5 +39,5 @@ class ClipboardHandler:
             if clipboard is None:
                 return ""
             return clipboard.text(QClipboard.Mode.Clipboard)
-        except Exception:
+        except RuntimeError:
             return ""

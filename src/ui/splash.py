@@ -1,100 +1,73 @@
-"""启动画面模块"""
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QProgressBar, QApplication
-from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QFont, QPainter, QLinearGradient, QColor, QPen
+"""与主界面一致的轻量启动画面。"""
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QLabel,
+    QProgressBar,
+    QVBoxLayout,
+    QWidget,
+)
+
+from app_version import APP_VERSION
+from ui.app_icon import create_app_icon
 
 
 class SplashScreen(QWidget):
-    """启动画面"""
-    
     def __init__(self):
         super().__init__()
-        self.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint | 
-            Qt.WindowType.WindowStaysOnTopHint
-        )
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setFixedSize(500, 280)
-        
-        # 居中显示
-        screen = QApplication.primaryScreen().geometry()
-        x = (screen.width() - self.width()) // 2
-        y = (screen.height() - self.height()) // 2
-        self.move(x, y)
-        
+        self.setFixedSize(520, 270)
+        screen = QApplication.primaryScreen()
+        if screen is not None:
+            area = screen.availableGeometry()
+            self.move(area.center().x() - self.width() // 2, area.center().y() - self.height() // 2)
         self._setup_ui()
-        
-    def _setup_ui(self):
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        
-        # 主容器
+
+    def _setup_ui(self) -> None:
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(8, 8, 8, 8)
         container = QWidget()
-        container.setStyleSheet("""
-            QWidget {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #1e3c72, stop:1 #2a5298);
-                border-radius: 20px;
-                border: 2px solid rgba(255,255,255,0.2);
-            }
-        """)
-        container_layout = QVBoxLayout(container)
-        container_layout.setContentsMargins(40, 40, 40, 40)
-        container_layout.setSpacing(20)
-        
-        # 图标和标题
-        title = QLabel("🎮 我的世界 IPv6 联机工具")
-        title.setFont(QFont("Microsoft YaHei", 18, QFont.Weight.Bold))
-        title.setStyleSheet("color: white; background: transparent;")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        container_layout.addWidget(title)
-        
-        # 副标题
-        subtitle = QLabel("Minecraft IPv6 Connection Tool")
-        subtitle.setFont(QFont("Arial", 10))
-        subtitle.setStyleSheet("color: rgba(255,255,255,0.7); background: transparent;")
-        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        container_layout.addWidget(subtitle)
-        
-        container_layout.addSpacing(10)
-        
-        # 状态文字
-        self.status_label = QLabel("正在初始化...")
-        self.status_label.setFont(QFont("Microsoft YaHei", 10))
-        self.status_label.setStyleSheet("color: rgba(255,255,255,0.9); background: transparent;")
-        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        container_layout.addWidget(self.status_label)
-        
-        # 进度条
+        container.setStyleSheet(
+            "QWidget{background:#1C2921;border:1px solid #34463A;border-radius:20px;}"
+            "QLabel{border:none;background:transparent;color:white;}"
+            "QProgressBar{border:none;background:#34463A;border-radius:4px;min-height:8px;max-height:8px;}"
+            "QProgressBar::chunk{background:#C7E36C;border-radius:4px;}"
+        )
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(34, 30, 34, 28)
+        layout.setSpacing(18)
+        brand = QHBoxLayout()
+        logo = QLabel()
+        logo.setFixedSize(54, 54)
+        logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        logo.setPixmap(create_app_icon().pixmap(54, 54))
+        brand.addWidget(logo)
+        text = QVBoxLayout()
+        title = QLabel("买块 IPv6 联机工具")
+        title.setFont(QFont("Microsoft YaHei UI", 17, QFont.Weight.DemiBold))
+        subtitle = QLabel("Minecraft Java · IPv6 直连配置与诊断")
+        subtitle.setStyleSheet("color:#BFCBC2;")
+        text.addWidget(title)
+        text.addWidget(subtitle)
+        brand.addLayout(text, 1)
+        version = QLabel(f"v{APP_VERSION}")
+        version.setStyleSheet("color:#9FB0A3;")
+        brand.addWidget(version, alignment=Qt.AlignmentFlag.AlignTop)
+        layout.addLayout(brand)
+        layout.addStretch()
+        self.status_label = QLabel("正在初始化…")
+        self.status_label.setStyleSheet("color:#D2DDD4;")
+        layout.addWidget(self.status_label)
         self.progress = QProgressBar()
-        self.progress.setFixedHeight(10)
         self.progress.setTextVisible(False)
-        self.progress.setStyleSheet("""
-            QProgressBar {
-                background-color: rgba(255,255,255,0.2);
-                border-radius: 5px;
-                border: 1px solid rgba(255,255,255,0.3);
-            }
-            QProgressBar::chunk {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #4CAF50, stop:1 #8BC34A);
-                border-radius: 5px;
-            }
-        """)
         self.progress.setValue(0)
-        container_layout.addWidget(self.progress)
-        
-        # 版本信息
-        version_label = QLabel("v1.2.2")
-        version_label.setFont(QFont("Arial", 8))
-        version_label.setStyleSheet("color: rgba(255,255,255,0.5); background: transparent;")
-        version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        container_layout.addWidget(version_label)
-        
-        layout.addWidget(container)
-    
-    def set_progress(self, value: int, status: str = None):
-        """设置进度"""
+        layout.addWidget(self.progress)
+        outer.addWidget(container)
+
+    def set_progress(self, value: int, status: str | None = None) -> None:
         self.progress.setValue(value)
         if status:
             self.status_label.setText(status)
